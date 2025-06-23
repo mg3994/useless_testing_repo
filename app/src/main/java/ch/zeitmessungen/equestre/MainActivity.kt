@@ -11,28 +11,21 @@ on:
 
 jobs:
   build:
-    name: Build APK
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
+    permissions: write-all
 
     steps:
-      - name: Checkout sources
-        uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17' # adjust if your project uses another version
+    - name: "Build APK Project"
+      run: |
+       ./gradlew assembleRelease
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
-
-      - name: Build with Gradle
-        run: ./gradlew assembleRelease
-
-      - name: Push into Releases Tab
-        uses: ncipollo/release-action@v1
-        with:
-          artifacts: app/build/outputs/apk/release/app-release.apk
-          tag: v1.0.${{ github.run_number }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Push into Releases Tab
+      uses: ncipollo/release-action@v1
+      with:
+        artifacts: "app/build/outputs/apk/release/*"
+        tag: v1.0.${{ github.run_number }}
+        token: ${{ secrets.GITHUB_TOKEN}}
