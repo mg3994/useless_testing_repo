@@ -1,0 +1,47 @@
+[versions]
+agp = "8.10.1"
+kotlin = "2.0.21"
+coreKtx = "1.16.0"
+junit = "4.13.2"
+junitVersion = "1.2.1"
+espressoCore = "3.6.1"
+appcompat = "1.7.1"
+material = "1.12.0"
+
+
+
+
+
+cameraLifecycleVersion = "1.4.2"
+cameraCamera2Version = "1.4.2"
+cameraCoreVersion = "1.4.2"
+cameraView = "1.4.2"
+cameraVideoVersion = "1.4.2"
+androidxMedia3Effect = "1.0.0-alpha03"
+androidxMedia3EffectVersion = "1.7.1"
+activityVersion = "1.10.1"
+constraintlayoutVersion = "2.2.1"
+
+
+[libraries]
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+
+androidx-camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "cameraLifecycleVersion" }
+androidx-camera-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "cameraCamera2Version" }
+androidx-camera-core = { group = "androidx.camera", name = "camera-core", version.ref = "cameraCoreVersion" }
+androidx-camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "cameraView" }
+androidx-camera-video = { group = "androidx.camera", name = "camera-video", version.ref = "cameraVideoVersion" }
+androidx-media3-effect = { group = "androidx.camera.media3", name = "media3-effect", version.ref = "androidxMedia3Effect" }
+media3-effect = { group = "androidx.media3", name = "media3-effect", version.ref = "androidxMedia3EffectVersion" }
+androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activityVersion" }
+androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayoutVersion" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+
