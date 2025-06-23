@@ -23,7 +23,6 @@ import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
 import androidx.camera.core.UseCaseGroup
 import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.camera.media3.effect.Media3Effect
 import androidx.camera.video.MediaStoreOutputOptions
 import androidx.camera.video.Quality
 import androidx.camera.video.QualitySelector
@@ -36,13 +35,13 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.media3.common.Effect
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.effect.OverlayEffect
 import androidx.media3.effect.OverlaySettings
 import androidx.media3.effect.StaticOverlaySettings
 import androidx.media3.effect.TextOverlay
 import androidx.media3.effect.TextureOverlay
+import androidx.media3.effect.Media3Effect
 import com.google.common.collect.ImmutableList
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -175,8 +174,8 @@ class MainActivity : AppCompatActivity() {
                 androidx.camera.core.CameraEffect.PREVIEW or androidx.camera.core.CameraEffect.VIDEO_CAPTURE,
                 ContextCompat.getMainExecutor(applicationContext)
             ) {
-                Log.e(TAG, "Media3Effect error: $it")
-                Toast.makeText(applicationContext, "Effect error: ${it.message}", Toast.LENGTH_LONG).show()
+                Log.e(TAG, "Media3Effect error: ${it.message ?: "Unknown error"}")
+                Toast.makeText(applicationContext, "Effect error: ${it.message ?: "Unknown error"}", Toast.LENGTH_LONG).show()
             }
 
             val overlayEffect = createDynamicOverlayEffect()
