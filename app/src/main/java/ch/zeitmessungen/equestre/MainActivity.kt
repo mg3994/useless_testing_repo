@@ -19,10 +19,12 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.camera.core.CameraEffect
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
 import androidx.camera.core.UseCaseGroup
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.media3.effect.Media3Effect
 import androidx.camera.video.MediaStoreOutputOptions
 import androidx.camera.video.Quality
 import androidx.camera.video.QualitySelector
@@ -35,13 +37,13 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.media3.common.OverlaySettings
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.effect.OverlayEffect
-import androidx.media3.effect.OverlaySettings
 import androidx.media3.effect.StaticOverlaySettings
 import androidx.media3.effect.TextOverlay
 import androidx.media3.effect.TextureOverlay
-import androidx.media3.effect.Media3Effect
+
 import com.google.common.collect.ImmutableList
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -122,7 +124,7 @@ class MainActivity : AppCompatActivity() {
             .prepareRecording(this, mediaStoreOutputOptions)
             .apply {
                 if (PermissionChecker.checkSelfPermission(this@MainActivity, Manifest.permission.RECORD_AUDIO) ==
-                    PackageManager.PERMISSION_GRANTED
+                    PermissionChecker.PERMISSION_GRANTED
                 ) {
                     withAudioEnabled()
                 }
@@ -140,8 +142,8 @@ class MainActivity : AppCompatActivity() {
                         } else {
                             recording?.close()
                             recording = null
-                            Log.e(TAG, "Video capture Ends With Error: ${recordEvent.error?.message ?: "Unknown error"}")
-                            Toast.makeText(baseContext, "Video capture failed: ${recordEvent.error?.message ?: "Unknown error"}", Toast.LENGTH_SHORT).show()
+                            Log.e(TAG, "Video capture Ends With Error: ${recordEvent.error}")
+                            Toast.makeText(baseContext, "Video capture failed: ${recordEvent.error}", Toast.LENGTH_SHORT).show()
                         }
                         button.isEnabled = true
                     }
@@ -155,7 +157,7 @@ class MainActivity : AppCompatActivity() {
             val cameraProvider = cameraProviderFuture.get()
 
             val preview = Preview.Builder().build().also {
-                it.setSurfaceProvider(viewFinder.surfaceProvider)
+                it.surfaceProvider = viewFinder.surfaceProvider
             }
 
             val recorder = Recorder.Builder()
@@ -171,7 +173,7 @@ class MainActivity : AppCompatActivity() {
 
             val media3Effect = Media3Effect(
                 applicationContext,
-                androidx.camera.core.CameraEffect.PREVIEW or androidx.camera.core.CameraEffect.VIDEO_CAPTURE,
+                CameraEffect.PREVIEW or CameraEffect.VIDEO_CAPTURE,
                 ContextCompat.getMainExecutor(applicationContext)
             ) {
                 Log.e(TAG, "Media3Effect error: ${it.message ?: "Unknown error"}")
@@ -179,7 +181,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             val overlayEffect = createDynamicOverlayEffect()
-            overlayEffect?.let {
+            overlayEffect.let {
                 media3Effect.setEffects(listOf(it))
             }
 
@@ -225,10 +227,13 @@ class MainActivity : AppCompatActivity() {
             }.toTypedArray()
     }
 
-    private fun createDynamicOverlayEffect(): OverlayEffect? {
+    private fun createDynamicOverlayEffect(): OverlayEffect {
         val overlaySettings = StaticOverlaySettings.Builder()
-            .setAnchor(0f, 1f)
-            .setOffset(0.02f, -0.02f)
+            .setRotationDegrees(90f)
+            .setAlphaScale(
+                1f
+            )
+
             .build()
 
         val dynamicTextOverlay = object : TextOverlay() {
