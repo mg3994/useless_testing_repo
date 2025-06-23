@@ -13,7 +13,6 @@ import android.text.SpannableString
 import android.text.style.AbsoluteSizeSpan
 import android.text.style.ForegroundColorSpan
 import android.util.Log
-import android.view.View
 import android.widget.Button
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -38,7 +37,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.media3.common.Effect
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.effect.OverlayEffect
-import androidx.media3.effect.OverlaySettings
+import androidx.media3.effect.OverlaySettings // Correct import for OverlaySettings
 import androidx.media3.effect.StaticOverlaySettings
 import androidx.media3.effect.TextOverlay
 import androidx.media3.effect.TextureOverlay
@@ -47,14 +46,16 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors // Import for Executors
+import java.util.concurrent.Executors
 
+// Import CameraX Preview here explicitly
+import androidx.camera.core.Preview // Correct import for Preview
 
 @UnstableApi
 class MainActivity : AppCompatActivity() {
     private var videoCapture: VideoCapture<Recorder>? = null
     private var recording: Recording? = null
-    private lateinit var cameraExecutor: ExecutorService // Initialize in onCreate
+    private lateinit var cameraExecutor: ExecutorService
     private lateinit var viewFinder: PreviewView
     private lateinit var button: Button
 
@@ -82,7 +83,7 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        cameraExecutor = Executors.newSingleThreadExecutor() // Initialize cameraExecutor
+        cameraExecutor = Executors.newSingleThreadExecutor()
         viewFinder = findViewById(R.id.viewFinder)
         button = findViewById(R.id.video_capture_button)
 
@@ -103,6 +104,7 @@ class MainActivity : AppCompatActivity() {
         if (curRecording != null) {
             curRecording.stop()
             recording = null
+            Toast.makeText(this, "Recording Stopped", Toast.LENGTH_SHORT).show() // Added toast
             return
         }
 
@@ -111,7 +113,7 @@ class MainActivity : AppCompatActivity() {
         val contentValues = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, name)
             put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
-            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) { // Changed to Q for MediaStore.Video.Media.RELATIVE_PATH
                 put(MediaStore.Video.Media.RELATIVE_PATH, "Movies/CameraX-Video")
             }
         }
@@ -125,7 +127,7 @@ class MainActivity : AppCompatActivity() {
             .prepareRecording(this, mediaStoreOutputOptions)
             .apply {
                 if (PermissionChecker.checkSelfPermission(this@MainActivity, Manifest.permission.RECORD_AUDIO) ==
-                    PermissionChecker.PERMISSION_GRANTED
+                    PackageManager.PERMISSION_GRANTED // Changed to PackageManager.PERMISSION_GRANTED
                 ) {
                     withAudioEnabled()
                 }
@@ -144,7 +146,7 @@ class MainActivity : AppCompatActivity() {
                             recording?.close()
                             recording = null
                             Log.e(TAG, "Video capture Ends With Error: ${recordEvent.error}")
-                            Toast.makeText(baseContext, "Video capture failed: ${recordEvent.error}", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(baseContext, "Video capture failed: ${recordEvent.error?.message}", Toast.LENGTH_SHORT).show() // More detailed error
                         }
                         button.isEnabled = true
                     }
@@ -157,6 +159,7 @@ class MainActivity : AppCompatActivity() {
         cameraProviderFuture.addListener({
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
 
+            // Corrected Preview.Builder usage
             val preview = Preview.Builder().build().also {
                 it.setSurfaceProvider(viewFinder.surfaceProvider)
             }
@@ -169,22 +172,23 @@ class MainActivity : AppCompatActivity() {
                 .addUseCase(preview)
                 .addUseCase(videoCapture!!)
 
-            // Create and add the Media3Effect with dynamic TextOverlay
             val media3Effect = Media3Effect(
-                application,
+                applicationContext, // Use applicationContext for effects that outlive activity
                 androidx.camera.core.CameraEffect.PREVIEW or androidx.camera.core.CameraEffect.VIDEO_CAPTURE,
-                ContextCompat.getMainExecutor(application)
+                ContextCompat.getMainExecutor(applicationContext)
             ) {
-                // Error listener for effects
                 Log.e(TAG, "Media3Effect error: $it")
                 Toast.makeText(applicationContext, "Effect error: ${it.message}", Toast.LENGTH_LONG).show()
             }
 
             val overlayEffect = createDynamicOverlayEffect()
             overlayEffect?.let {
-                val effectsList = ImmutableList.Builder<Effect>().add(it).build()
-                media3Effect.setEffects(effectsList)
+                // OverlayEffect expects a List<TextureOverlay>, and TextOverlay is a TextureOverlay.
+                // Using listOf() explicitly casts and works correctly.
+                val effectsList = listOf<TextureOverlay>(it.textureOverlays.first()) // Extract the TextOverlay from the OverlayEffect
+                media3Effect.setEffects(listOf(OverlayEffect(effectsList))) // Re-wrap in a new OverlayEffect
             }
+
 
             useCaseGroupBuilder.addEffect(media3Effect)
 
@@ -226,30 +230,28 @@ class MainActivity : AppCompatActivity() {
             }.toTypedArray()
     }
 
-    // NEW FUNCTION: createDynamicOverlayEffect
     private fun createDynamicOverlayEffect(): OverlayEffect? {
         val overlaySettings = StaticOverlaySettings.Builder()
             .setAnchor(0f, 1f) // Anchor at bottom-left (0, 1)
-            .setOffset(-0.02f, -0.02f) // Small padding from bottom-left corner
+            .setOffset(0.02f, -0.02f) // Small padding from bottom-left corner (positive X, negative Y)
             .build()
 
-        // Create a custom TextOverlay that provides dynamic text
         val dynamicTextOverlay = object : TextOverlay() {
             private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US)
             private val textPaint = Paint().apply {
-                color = Color.WHITE // White text color
-                textSize = 50f // Example text size
-                setShadowLayer(5f, 0f, 0f, Color.BLACK) // Add a black shadow for readability
+                color = Color.WHITE
+                textSize = 50f
+                setShadowLayer(5f, 0f, 0f, Color.BLACK)
+                // Add a text alignment if desired, e.g., Paint.Align.LEFT
+                textAlign = Paint.Align.LEFT
             }
 
             override fun getText(presentationTimeUs: Long): SpannableString {
-                // Convert presentationTimeUs (microseconds) to milliseconds
                 val timestampMs = presentationTimeUs / 1000
                 val date = Date(timestampMs)
                 val formattedTime = dateFormat.format(date)
 
                 val spannableString = SpannableString(formattedTime)
-                // Apply desired styling
                 spannableString.setSpan(
                     ForegroundColorSpan(textPaint.color),
                     0,
@@ -266,18 +268,11 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun getOverlaySettings(presentationTimeUs: Long): OverlaySettings {
-                // You can return different settings based on time if needed,
-                // but for a static position, use the pre-defined one.
                 return overlaySettings
             }
-
-            // You can override drawText if you need custom Canvas drawing logic
-            // @Override
-            // public void drawText(Canvas canvas, String text, float x, float y, Paint paint) {
-            //     super.drawText(canvas, text, x, y, paint);
-            // }
         }
-
-        return OverlayEffect(ImmutableList.of(dynamicTextOverlay))
+        // OverlayEffect expects a List<TextureOverlay>. TextOverlay extends TextureOverlay,
+        // so we can directly put dynamicTextOverlay in a list.
+        return OverlayEffect(listOf(dynamicTextOverlay))
     }
 }
