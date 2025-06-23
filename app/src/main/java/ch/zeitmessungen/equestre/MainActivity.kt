@@ -37,7 +37,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.media3.common.Effect
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.effect.OverlayEffect
-import androidx.media3.effect.OverlaySettings // Correct import for OverlaySettings
+import androidx.media3.effect.OverlaySettings
 import androidx.media3.effect.StaticOverlaySettings
 import androidx.media3.effect.TextOverlay
 import androidx.media3.effect.TextureOverlay
@@ -48,8 +48,7 @@ import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-// Import CameraX Preview here explicitly
-import androidx.camera.core.Preview // Correct import for Preview
+import androidx.camera.core.Preview
 
 @UnstableApi
 class MainActivity : AppCompatActivity() {
@@ -104,7 +103,7 @@ class MainActivity : AppCompatActivity() {
         if (curRecording != null) {
             curRecording.stop()
             recording = null
-            Toast.makeText(this, "Recording Stopped", Toast.LENGTH_SHORT).show() // Added toast
+            Toast.makeText(this, "Recording Stopped", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -113,7 +112,7 @@ class MainActivity : AppCompatActivity() {
         val contentValues = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, name)
             put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) { // Changed to Q for MediaStore.Video.Media.RELATIVE_PATH
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 put(MediaStore.Video.Media.RELATIVE_PATH, "Movies/CameraX-Video")
             }
         }
@@ -127,7 +126,7 @@ class MainActivity : AppCompatActivity() {
             .prepareRecording(this, mediaStoreOutputOptions)
             .apply {
                 if (PermissionChecker.checkSelfPermission(this@MainActivity, Manifest.permission.RECORD_AUDIO) ==
-                    PackageManager.PERMISSION_GRANTED // Changed to PackageManager.PERMISSION_GRANTED
+                    PackageManager.PERMISSION_GRANTED
                 ) {
                     withAudioEnabled()
                 }
@@ -145,8 +144,8 @@ class MainActivity : AppCompatActivity() {
                         } else {
                             recording?.close()
                             recording = null
-                            Log.e(TAG, "Video capture Ends With Error: ${recordEvent.error}")
-                            Toast.makeText(baseContext, "Video capture failed: ${recordEvent.error?.message}", Toast.LENGTH_SHORT).show() // More detailed error
+                            Log.e(TAG, "Video capture Ends With Error: ${recordEvent.error?.message ?: "Unknown error"}")
+                            Toast.makeText(baseContext, "Video capture failed: ${recordEvent.error?.message ?: "Unknown error"}", Toast.LENGTH_SHORT).show()
                         }
                         button.isEnabled = true
                     }
@@ -159,7 +158,6 @@ class MainActivity : AppCompatActivity() {
         cameraProviderFuture.addListener({
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
 
-            // Corrected Preview.Builder usage
             val preview = Preview.Builder().build().also {
                 it.setSurfaceProvider(viewFinder.surfaceProvider)
             }
@@ -173,7 +171,7 @@ class MainActivity : AppCompatActivity() {
                 .addUseCase(videoCapture!!)
 
             val media3Effect = Media3Effect(
-                applicationContext, // Use applicationContext for effects that outlive activity
+                applicationContext,
                 androidx.camera.core.CameraEffect.PREVIEW or androidx.camera.core.CameraEffect.VIDEO_CAPTURE,
                 ContextCompat.getMainExecutor(applicationContext)
             ) {
@@ -183,12 +181,9 @@ class MainActivity : AppCompatActivity() {
 
             val overlayEffect = createDynamicOverlayEffect()
             overlayEffect?.let {
-                // OverlayEffect expects a List<TextureOverlay>, and TextOverlay is a TextureOverlay.
-                // Using listOf() explicitly casts and works correctly.
-                val effectsList = listOf<TextureOverlay>(it.textureOverlays.first()) // Extract the TextOverlay from the OverlayEffect
-                media3Effect.setEffects(listOf(OverlayEffect(effectsList))) // Re-wrap in a new OverlayEffect
+                // Apply the single OverlayEffect which contains the dynamic TextOverlay
+                media3Effect.setEffects(listOf(it)) // Direct application
             }
-
 
             useCaseGroupBuilder.addEffect(media3Effect)
 
@@ -213,7 +208,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        cameraExecutor.shutdown()
+        if (::cameraExecutor.isInitialized) {
+            cameraExecutor.shutdown()
+        }
     }
 
     companion object {
@@ -242,7 +239,6 @@ class MainActivity : AppCompatActivity() {
                 color = Color.WHITE
                 textSize = 50f
                 setShadowLayer(5f, 0f, 0f, Color.BLACK)
-                // Add a text alignment if desired, e.g., Paint.Align.LEFT
                 textAlign = Paint.Align.LEFT
             }
 
@@ -271,8 +267,7 @@ class MainActivity : AppCompatActivity() {
                 return overlaySettings
             }
         }
-        // OverlayEffect expects a List<TextureOverlay>. TextOverlay extends TextureOverlay,
-        // so we can directly put dynamicTextOverlay in a list.
-        return OverlayEffect(listOf(dynamicTextOverlay))
+        // Correctly create OverlayEffect with a list of TextureOverlay (TextOverlay is a TextureOverlay)
+        return OverlayEffect(ImmutableList.of(dynamicTextOverlay as TextureOverlay))
     }
 }
