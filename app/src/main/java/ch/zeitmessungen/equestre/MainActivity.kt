@@ -1,3 +1,4 @@
+// MainActivity.kt
 package ch.zeitmessungen.equestre
 
 import android.Manifest
@@ -19,6 +20,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.Preview
 import androidx.camera.core.UseCaseGroup
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.media3.effect.Media3Effect
@@ -48,8 +50,6 @@ import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-import androidx.camera.core.Preview
-
 @UnstableApi
 class MainActivity : AppCompatActivity() {
     private var videoCapture: VideoCapture<Recorder>? = null
@@ -60,11 +60,7 @@ class MainActivity : AppCompatActivity() {
 
     private val activityResultLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
-            var permissionGranted = true
-            permissions.entries.forEach {
-                if (it.key in REQUIRED_PERMISSIONS && !it.value)
-                    permissionGranted = false
-            }
+            val permissionGranted = permissions.entries.all { it.value }
             if (!permissionGranted) {
                 Toast.makeText(baseContext, "Permission request Denied", Toast.LENGTH_SHORT).show()
             } else {
@@ -91,6 +87,7 @@ class MainActivity : AppCompatActivity() {
         } else {
             requestPermissions()
         }
+
         button.setOnClickListener {
             captureVideo()
         }
@@ -99,6 +96,7 @@ class MainActivity : AppCompatActivity() {
     private fun captureVideo() {
         val videoCapture = this.videoCapture ?: return
         button.isEnabled = false
+
         val curRecording = recording
         if (curRecording != null) {
             curRecording.stop()
@@ -107,8 +105,7 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        val name = SimpleDateFormat(FILENAME_FORMAT, Locale.US)
-            .format(System.currentTimeMillis())
+        val name = SimpleDateFormat(FILENAME_FORMAT, Locale.US).format(System.currentTimeMillis())
         val contentValues = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, name)
             put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
@@ -156,12 +153,15 @@ class MainActivity : AppCompatActivity() {
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
         cameraProviderFuture.addListener({
-            val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
+            val cameraProvider = cameraProviderFuture.get()
 
             val preview = Preview.Builder().build().also {
                 it.setSurfaceProvider(viewFinder.surfaceProvider)
             }
-            val recorder = Recorder.Builder().setQualitySelector(QualitySelector.from(Quality.HIGHEST)).build()
+
+            val recorder = Recorder.Builder()
+                .setQualitySelector(QualitySelector.from(Quality.HIGHEST))
+                .build()
             videoCapture = VideoCapture.withOutput(recorder)
 
             val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
@@ -181,8 +181,7 @@ class MainActivity : AppCompatActivity() {
 
             val overlayEffect = createDynamicOverlayEffect()
             overlayEffect?.let {
-                // Apply the single OverlayEffect which contains the dynamic TextOverlay
-                media3Effect.setEffects(listOf(it)) // Direct application
+                media3Effect.setEffects(listOf(it))
             }
 
             useCaseGroupBuilder.addEffect(media3Effect)
@@ -193,7 +192,7 @@ class MainActivity : AppCompatActivity() {
                     this, cameraSelector, useCaseGroupBuilder.build()
                 )
             } catch (exec: Exception) {
-                Log.e(TAG, "use case binding failed", exec)
+                Log.e(TAG, "Use case binding failed", exec)
             }
         }, ContextCompat.getMainExecutor(this))
     }
@@ -229,8 +228,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun createDynamicOverlayEffect(): OverlayEffect? {
         val overlaySettings = StaticOverlaySettings.Builder()
-            .setAnchor(0f, 1f) // Anchor at bottom-left (0, 1)
-            .setOffset(0.02f, -0.02f) // Small padding from bottom-left corner (positive X, negative Y)
+            .setAnchor(0f, 1f)
+            .setOffset(0.02f, -0.02f)
             .build()
 
         val dynamicTextOverlay = object : TextOverlay() {
@@ -246,7 +245,6 @@ class MainActivity : AppCompatActivity() {
                 val timestampMs = presentationTimeUs / 1000
                 val date = Date(timestampMs)
                 val formattedTime = dateFormat.format(date)
-
                 val spannableString = SpannableString(formattedTime)
                 spannableString.setSpan(
                     ForegroundColorSpan(textPaint.color),
@@ -267,7 +265,6 @@ class MainActivity : AppCompatActivity() {
                 return overlaySettings
             }
         }
-        // Correctly create OverlayEffect with a list of TextureOverlay (TextOverlay is a TextureOverlay)
         return OverlayEffect(ImmutableList.of(dynamicTextOverlay as TextureOverlay))
     }
 }
