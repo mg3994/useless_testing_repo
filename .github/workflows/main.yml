@@ -17,6 +17,8 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+    - name: Give gradlew execute permission
+      run: chmod +x ./gradlew
 
     - name: "Build  APK Project"
       run: |
