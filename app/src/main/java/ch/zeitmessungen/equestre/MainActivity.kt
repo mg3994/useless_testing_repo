@@ -237,32 +237,23 @@ class MainActivity : AppCompatActivity() {
             xAnchor: Float,
             yAnchor: Float,
             textSizePx: Int = 48,
-            rotationDegrees: Float = 90f,
+            rotationDegrees: Float = 0f,
+            tiltRotationDegrees: Float = 0f,
             backgroundAnchorX: Float? = null,
             backgroundAnchorY: Float? = null,
             alphaScale: Float = 1f,
             hdrLuminanceMultiplier: Float? = null,
             scaleX: Float? = null,
             scaleY: Float? = null,
-            tiltRotationDegrees: Float = 0f,
             xOffset: Float = 0f,
             yOffset: Float = 0f
         ): TextOverlay {
             return object : TextOverlay() {
                 override fun getText(presentationTimeUs: Long): SpannableString {
                     val spannable = SpannableString(text)
-                    spannable.setSpan(
-                        android.text.style.BackgroundColorSpan(bgColor),
-                        0, text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-                    )
-                    spannable.setSpan(
-                        ForegroundColorSpan(fgColor),
-                        0, text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-                    )
-                    spannable.setSpan(
-                        AbsoluteSizeSpan(textSizePx, false),
-                        0, text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-                    )
+                    spannable.setSpan(android.text.style.BackgroundColorSpan(bgColor), 0, text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    spannable.setSpan(ForegroundColorSpan(fgColor), 0, text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    spannable.setSpan(AbsoluteSizeSpan(textSizePx, false), 0, text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
                     return spannable
                 }
 
@@ -272,123 +263,92 @@ class MainActivity : AppCompatActivity() {
                         .setRotationDegrees(rotationDegrees + tiltRotationDegrees)
                         .setAlphaScale(alphaScale)
 
-                    if (backgroundAnchorX != null && backgroundAnchorY != null) {
-                        builder.setBackgroundFrameAnchor(backgroundAnchorX, backgroundAnchorY)
+                    backgroundAnchorX?.let { x ->
+                        backgroundAnchorY?.let { y ->
+                            builder.setBackgroundFrameAnchor(x, y)
+                        }
                     }
-                    if (hdrLuminanceMultiplier != null) {
-                        builder.setHdrLuminanceMultiplier(hdrLuminanceMultiplier)
-                    }
-                    if (scaleX != null && scaleY != null) {
-                        builder.setScale(scaleX, scaleY)
-                    }
+
+                    hdrLuminanceMultiplier?.let { builder.setHdrLuminanceMultiplier(it) }
+                    if (scaleX != null && scaleY != null) builder.setScale(scaleX, scaleY)
 
                     return builder.build()
                 }
             }
         }
 
-        val timestampOverlay = object : TextOverlay() {
-            override fun getText(presentationTimeUs: Long): SpannableString {
-                val timestampMs = presentationTimeUs / 1000
-                val date = Date(timestampMs)
-                val formattedTime = dateFormat.format(date)
-                return SpannableString(formattedTime).apply {
-                    setSpan(ForegroundColorSpan(Color.WHITE), 0, length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-                    setSpan(AbsoluteSizeSpan(50, false), 0, length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-                }
-            }
+        // 🔵 Top Left - Watermark
+        val brandWatermarkOverlay = buildColoredTextOverlay(
+            text = "© Equestre™",
+            bgColor = Color.TRANSPARENT,
+            fgColor = Color.LTGRAY,
+            xAnchor = -0.95f,
+            yAnchor = -0.95f,
+            textSizePx = 70,
+//            rotationDegrees = 90f,
+                    backgroundAnchorX = -0.9f,
+            backgroundAnchorY = 0.6f,
+        )
 
-            override fun getOverlaySettings(presentationTimeUs: Long): OverlaySettings {
-                return StaticOverlaySettings.Builder()
-                    .setOverlayFrameAnchor(-0.9f, 0.9f)
-                    .setRotationDegrees(90f)
-                    .setAlphaScale(1f)
-                    .build()
-            }
-        }
-
+        // 🔴 Top Right - Blinking LIVE Logo
         val liveOverlay = object : TextOverlay() {
-            private val textSizePx = 60
-
             override fun getText(presentationTimeUs: Long): SpannableString {
                 val blinkVisible = ((presentationTimeUs / 500_000) % 2L == 0L)
-                val liveText = if (blinkVisible) "\u2B24 LIVE" else " "
+                val liveText = if (blinkVisible) "\u2B24 LIVE" else "       "
 
                 return SpannableString(liveText).apply {
                     if (blinkVisible) {
                         setSpan(ForegroundColorSpan(Color.RED), 0, 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
                         setSpan(ForegroundColorSpan(Color.WHITE), 2, length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
                         setSpan(android.text.style.BackgroundColorSpan(Color.RED), 0, length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-                        setSpan(AbsoluteSizeSpan(textSizePx, false), 0, length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-                    } else {
-                        setSpan(ForegroundColorSpan(Color.TRANSPARENT), 0, length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                        setSpan(AbsoluteSizeSpan(60, false), 0, length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
                     }
                 }
             }
 
             override fun getOverlaySettings(presentationTimeUs: Long): OverlaySettings {
                 return StaticOverlaySettings.Builder()
-                    .setOverlayFrameAnchor(0.88f, -0.6f)
-                    .setAlphaScale(1f)
+                    .setOverlayFrameAnchor(0.95f, -0.95f)
+                    .setAlphaScale(1f).setBackgroundFrameAnchor(0.9f,0.6f)
+//                    .setRotationDegrees(90f)
                     .build()
             }
         }
 
-        val newsNumberOverlay = buildColoredTextOverlay(
-            text = "01",
-            bgColor = 0xFF1E88E5.toInt(),
-            xAnchor = -0.2f,
-            yAnchor = -0.5f,
-            tiltRotationDegrees = -5f,
-            yOffset = 0.02f
-        )
+        // 🟢 Bottom Left: Horse Number, Horse Name, Rider
+        val horseNumberOverlay = buildColoredTextOverlay("#07", 0xFF1E88E5.toInt(), xAnchor = -0.95f, yAnchor = 0.65f,textSizePx = 80,  backgroundAnchorX = -0.9f,
+            backgroundAnchorY = -0.45f,)
+        val horseNameOverlay = buildColoredTextOverlay("Thunder Bolt", 0xFF808080.toInt(), xAnchor = -0.95f, yAnchor = 0.75f,textSizePx = 80,backgroundAnchorX = -0.77f,
+            backgroundAnchorY = -0.45f,)
+        val riderOverlay = buildColoredTextOverlay("Rider: A. Smith", 0xFF6A1B9A.toInt(), xAnchor = -0.95f, yAnchor = 0.85f,textSizePx = 80,backgroundAnchorX = -0.74f,
+            backgroundAnchorY = -0.52f,)
 
-        val headlineOverlay = buildColoredTextOverlay(
-            text = "Manish Sharma",
-            bgColor = 0xFFD81B60.toInt(),
-            xAnchor = 1f,
-            yAnchor = 0.75f,
-            tiltRotationDegrees = 10f, // More tilt
-            backgroundAnchorX = 0.75f,
-            backgroundAnchorY = 0.7f,
-            scaleX = 1.2f, // Stretch slightly
-            scaleY = 1f
-        )
-
-        val stockPriceOverlay = object : TextOverlay() {
-            override fun getText(presentationTimeUs: Long): SpannableString {
-                val price = 345.67
-                val change = 2.5
-                val percentChange = 0.73
-                val bgColor = if (change >= 0) 0xFF2E7D32.toInt() else 0xFFC62828.toInt()
-                val text = String.format(Locale.US, "Win By: $%.2f  %.2f%%", price, percentChange)
-
-                return SpannableString(text).apply {
-                    setSpan(android.text.style.BackgroundColorSpan(bgColor), 0, text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-                    setSpan(ForegroundColorSpan(Color.WHITE), 0, text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-                    setSpan(AbsoluteSizeSpan(48, false), 0, text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-                }
-            }
-
-            override fun getOverlaySettings(presentationTimeUs: Long): OverlaySettings {
-                return StaticOverlaySettings.Builder()
-                    .setOverlayFrameAnchor(-0.9f, 0.75f)
-                    .setRotationDegrees(90f)
-                    .setAlphaScale(1f)
-                    .build()
-            }
-        }
+        // 🟡 Bottom Right: Gap to Best, Penalties, Time Taken, Rank , it is shown after race finishes
+        val gapOverlay = buildColoredTextOverlay("Gap: 0.25s", 0xFF2E7D32.toInt(), xAnchor = 0.95f, yAnchor = 0.60f,textSizePx = 70,backgroundAnchorX = 0.77f,
+            backgroundAnchorY = -0.45f,)
+        val penaltyOverlay = buildColoredTextOverlay("Penalties:4", 0xFFC62828.toInt(), xAnchor = 0.95f, yAnchor = 0.70f,textSizePx = 70,backgroundAnchorX = 0.58f,
+            backgroundAnchorY = -0.52f,)
+        val timeTakenOverlay = buildColoredTextOverlay("Time: 78.45s", 0xFF455A64.toInt(), xAnchor = 0.95f, yAnchor = 0.80f,textSizePx = 70,backgroundAnchorX = 0.77f,
+            backgroundAnchorY = -0.52f,)
+//         it is shown after race finishes
+        val rankOverlay = buildColoredTextOverlay("Rank: 3", 0xFF00838F.toInt(), xAnchor = 0.95f, yAnchor = 0.90f,textSizePx = 70,backgroundAnchorX = 0.9f,
+            backgroundAnchorY = -0.52f,)
 
         return OverlayEffect(
             ImmutableList.of(
-                timestampOverlay as TextureOverlay,
+                brandWatermarkOverlay as TextureOverlay,
                 liveOverlay as TextureOverlay,
-                newsNumberOverlay as TextureOverlay,
-                headlineOverlay as TextureOverlay,
-                stockPriceOverlay as TextureOverlay
+                horseNumberOverlay as TextureOverlay,
+                horseNameOverlay as TextureOverlay,
+                riderOverlay as TextureOverlay,
+                gapOverlay as TextureOverlay,
+                penaltyOverlay as TextureOverlay,
+                timeTakenOverlay as TextureOverlay,
+                rankOverlay as TextureOverlay
             )
         )
     }
+
 
 
 
