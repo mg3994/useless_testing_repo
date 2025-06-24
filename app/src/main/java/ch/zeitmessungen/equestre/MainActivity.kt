@@ -228,47 +228,169 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun createDynamicOverlayEffect(): OverlayEffect {
-        val overlaySettings = StaticOverlaySettings.Builder()
-            .setRotationDegrees(90f)
-            .setAlphaScale(
-                1f
-            )
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US)
 
-            .build()
+        fun buildColoredTextOverlay(
+            text: String,
+            bgColor: Int,
+            fgColor: Int = Color.WHITE,
+            xAnchor: Float,
+            yAnchor: Float,
+            textSizePx: Int = 48,
+            rotationDegrees: Float = 90f,
+            backgroundAnchorX: Float? = null,
+            backgroundAnchorY: Float? = null,
+            alphaScale: Float = 1f,
+            hdrLuminanceMultiplier: Float? = null,
+            scaleX: Float? = null,
+            scaleY: Float? = null,
+            tiltRotationDegrees: Float = 0f,
+            xOffset: Float = 0f,
+            yOffset: Float = 0f
+        ): TextOverlay {
+            return object : TextOverlay() {
+                override fun getText(presentationTimeUs: Long): SpannableString {
+                    val spannable = SpannableString(text)
+                    spannable.setSpan(
+                        android.text.style.BackgroundColorSpan(bgColor),
+                        0, text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                    spannable.setSpan(
+                        ForegroundColorSpan(fgColor),
+                        0, text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                    spannable.setSpan(
+                        AbsoluteSizeSpan(textSizePx, false),
+                        0, text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                    return spannable
+                }
 
-        val dynamicTextOverlay = object : TextOverlay() {
-            private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US)
-            private val textPaint = Paint().apply {
-                color = Color.WHITE
-                textSize = 50f
-                setShadowLayer(5f, 0f, 0f, Color.BLACK)
-                textAlign = Paint.Align.LEFT
+                override fun getOverlaySettings(presentationTimeUs: Long): OverlaySettings {
+                    val builder = StaticOverlaySettings.Builder()
+                        .setOverlayFrameAnchor(xAnchor + xOffset, yAnchor + yOffset)
+                        .setRotationDegrees(rotationDegrees + tiltRotationDegrees)
+                        .setAlphaScale(alphaScale)
+
+                    if (backgroundAnchorX != null && backgroundAnchorY != null) {
+                        builder.setBackgroundFrameAnchor(backgroundAnchorX, backgroundAnchorY)
+                    }
+                    if (hdrLuminanceMultiplier != null) {
+                        builder.setHdrLuminanceMultiplier(hdrLuminanceMultiplier)
+                    }
+                    if (scaleX != null && scaleY != null) {
+                        builder.setScale(scaleX, scaleY)
+                    }
+
+                    return builder.build()
+                }
             }
+        }
 
+        val timestampOverlay = object : TextOverlay() {
             override fun getText(presentationTimeUs: Long): SpannableString {
                 val timestampMs = presentationTimeUs / 1000
                 val date = Date(timestampMs)
                 val formattedTime = dateFormat.format(date)
-                val spannableString = SpannableString(formattedTime)
-                spannableString.setSpan(
-                    ForegroundColorSpan(textPaint.color),
-                    0,
-                    spannableString.length,
-                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-                )
-                spannableString.setSpan(
-                    AbsoluteSizeSpan(textPaint.textSize.toInt(), false),
-                    0,
-                    spannableString.length,
-                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-                )
-                return spannableString
+                return SpannableString(formattedTime).apply {
+                    setSpan(ForegroundColorSpan(Color.WHITE), 0, length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    setSpan(AbsoluteSizeSpan(50, false), 0, length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                }
             }
 
             override fun getOverlaySettings(presentationTimeUs: Long): OverlaySettings {
-                return overlaySettings
+                return StaticOverlaySettings.Builder()
+                    .setOverlayFrameAnchor(-0.9f, 0.9f)
+                    .setRotationDegrees(90f)
+                    .setAlphaScale(1f)
+                    .build()
             }
         }
-        return OverlayEffect(ImmutableList.of(dynamicTextOverlay as TextureOverlay))
+
+        val liveOverlay = object : TextOverlay() {
+            private val textSizePx = 60
+
+            override fun getText(presentationTimeUs: Long): SpannableString {
+                val blinkVisible = ((presentationTimeUs / 500_000) % 2L == 0L)
+                val liveText = if (blinkVisible) "\u2B24 LIVE" else " "
+
+                return SpannableString(liveText).apply {
+                    if (blinkVisible) {
+                        setSpan(ForegroundColorSpan(Color.RED), 0, 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                        setSpan(ForegroundColorSpan(Color.WHITE), 2, length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                        setSpan(android.text.style.BackgroundColorSpan(Color.RED), 0, length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                        setSpan(AbsoluteSizeSpan(textSizePx, false), 0, length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    } else {
+                        setSpan(ForegroundColorSpan(Color.TRANSPARENT), 0, length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    }
+                }
+            }
+
+            override fun getOverlaySettings(presentationTimeUs: Long): OverlaySettings {
+                return StaticOverlaySettings.Builder()
+                    .setOverlayFrameAnchor(0.88f, -0.6f)
+                    .setAlphaScale(1f)
+                    .build()
+            }
+        }
+
+        val newsNumberOverlay = buildColoredTextOverlay(
+            text = "01",
+            bgColor = 0xFF1E88E5.toInt(),
+            xAnchor = -0.2f,
+            yAnchor = -0.5f,
+            tiltRotationDegrees = -5f,
+            yOffset = 0.02f
+        )
+
+        val headlineOverlay = buildColoredTextOverlay(
+            text = "Manish Sharma",
+            bgColor = 0xFFD81B60.toInt(),
+            xAnchor = 1f,
+            yAnchor = 0.75f,
+            tiltRotationDegrees = 10f, // More tilt
+            backgroundAnchorX = 0.75f,
+            backgroundAnchorY = 0.7f,
+            scaleX = 1.2f, // Stretch slightly
+            scaleY = 1f
+        )
+
+        val stockPriceOverlay = object : TextOverlay() {
+            override fun getText(presentationTimeUs: Long): SpannableString {
+                val price = 345.67
+                val change = 2.5
+                val percentChange = 0.73
+                val bgColor = if (change >= 0) 0xFF2E7D32.toInt() else 0xFFC62828.toInt()
+                val text = String.format(Locale.US, "Win By: $%.2f  %.2f%%", price, percentChange)
+
+                return SpannableString(text).apply {
+                    setSpan(android.text.style.BackgroundColorSpan(bgColor), 0, text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    setSpan(ForegroundColorSpan(Color.WHITE), 0, text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    setSpan(AbsoluteSizeSpan(48, false), 0, text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                }
+            }
+
+            override fun getOverlaySettings(presentationTimeUs: Long): OverlaySettings {
+                return StaticOverlaySettings.Builder()
+                    .setOverlayFrameAnchor(-0.9f, 0.75f)
+                    .setRotationDegrees(90f)
+                    .setAlphaScale(1f)
+                    .build()
+            }
+        }
+
+        return OverlayEffect(
+            ImmutableList.of(
+                timestampOverlay as TextureOverlay,
+                liveOverlay as TextureOverlay,
+                newsNumberOverlay as TextureOverlay,
+                headlineOverlay as TextureOverlay,
+                stockPriceOverlay as TextureOverlay
+            )
+        )
     }
+
+
+
+
 }
