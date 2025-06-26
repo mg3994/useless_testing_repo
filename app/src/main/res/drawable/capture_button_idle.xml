@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- White outer ring -->
+    <!-- White outer ring (90dp) -->
     <item>
         <shape android:shape="oval">
             <solid android:color="#FFFFFF"/>
@@ -8,7 +8,7 @@
         </shape>
     </item>
 
-    <!-- Red inner circle -->
+    <!-- Red inner circle (70dp, due to 10dp padding on each side) -->
     <item android:left="10dp" android:top="10dp" android:right="10dp" android:bottom="10dp">
         <shape android:shape="oval">
             <solid android:color="#FF0000"/>

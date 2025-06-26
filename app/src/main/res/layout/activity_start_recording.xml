@@ -3,9 +3,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/start_recording"
-
     android:layout_width="match_parent"
-    android:layout_height="match_parent" tools:context=".ui.recording.StartRecordingActivity">
+    android:layout_height="match_parent"
+    tools:context=".ui.recording.StartRecordingActivity">
+
     <androidx.camera.view.PreviewView
         android:id="@+id/viewFinder"
         android:layout_width="0dp"
@@ -13,31 +14,21 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        />
+        app:layout_constraintBottom_toBottomOf="parent" />
 
-    <!-- Round Video Capture Button -->
+
     <Button
         android:id="@+id/video_capture_button"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
-        android:layout_marginBottom="32dp"
-        android:background="@drawable/capture_button_idle"
-        android:elevation="6dp"
-        android:contentDescription="@string/start_recording"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-    <!-- Round Video Capture Button -->
-<!--    <View-->
-<!--        android:id="@+id/video_capture_button"-->
-<!--        android:layout_width="72dp"-->
-<!--        android:layout_height="72dp"-->
-<!--        android:layout_marginBottom="32dp"-->
-<!--        android:background="@drawable/capture_button_idle"-->
-<!--        android:contentDescription="@string/start_recording"-->
-<!--        app:layout_constraintBottom_toBottomOf="parent"-->
-<!--        app:layout_constraintStart_toStartOf="parent"-->
-<!--        app:layout_constraintEnd_toEndOf="parent"/>-->
+        android:layout_width="90dp"
+    android:layout_height="90dp"
+    android:layout_marginBottom="32dp"
+    android:background="@drawable/capture_button_idle"
+    android:elevation="6dp"
+    android:contentDescription="@string/start_recording"
+    android:backgroundTint="@null"
+    android:text=""
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
