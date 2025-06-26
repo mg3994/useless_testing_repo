@@ -1,5 +1,5 @@
 [versions]
-agp = "8.10.1"
+agp = "8.11.0"
 kotlin = "2.0.21"
 coreKtx = "1.16.0"
 junit = "4.13.2"
@@ -21,6 +21,8 @@ androidxMedia3Effect = "1.0.0-alpha03"
 androidxMedia3EffectVersion = "1.7.1"
 activityVersion = "1.10.1"
 constraintlayoutVersion = "2.2.1"
+kotlinxCoroutinesAndroidVersion = "1.10.2"
+glideVersion = "5.0.0-rc01"
 
 
 [libraries]
@@ -40,6 +42,8 @@ androidx-media3-effect = { group = "androidx.camera.media3", name = "media3-effe
 media3-effect = { group = "androidx.media3", name = "media3-effect", version.ref = "androidxMedia3EffectVersion" }
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activityVersion" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayoutVersion" }
+kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroidVersion" }
+glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glideVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

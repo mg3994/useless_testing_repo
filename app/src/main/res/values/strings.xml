@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">equestre</string>
     <string name="start_recording">Start Recording</string>
+    <string name="thumbnail">Thumbnail</string>
 </resources>

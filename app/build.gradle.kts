@@ -6,6 +6,7 @@ plugins {
 android {
     namespace = "ch.zeitmessungen.equestre"
     compileSdk = 36
+    ndkVersion = "29.0.13599879"
 
     defaultConfig {
         applicationId = "ch.zeitmessungen.equestre"
@@ -27,11 +28,14 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "21"
+    }
+    buildFeatures {
+        viewBinding = true
     }
 }
 
@@ -50,6 +54,8 @@ dependencies {
     implementation(libs.media3.effect)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.glide)
 //
 
     testImplementation(libs.junit)

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="8dp">
+
+    <ImageView
+        android:id="@+id/imgThumbnail"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:scaleType="centerCrop"
+        android:contentDescription="@string/thumbnail"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <TextView
+        android:id="@+id/tvRecordingName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Recording Name"
+        android:textSize="16sp"
+        android:textColor="?attr/colorOnBackground"
+        android:maxLines="1"
+        android:ellipsize="end"
+        app:layout_constraintStart_toEndOf="@id/imgThumbnail"
+        app:layout_constraintTop_toTopOf="@id/imgThumbnail"
+        app:layout_constraintEnd_toStartOf="@+id/btnPlay"
+        android:layout_marginStart="12dp" />
+
+    <ImageButton
+        android:id="@+id/btnPlay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="Play"
+        android:src="@android:drawable/ic_media_play"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        app:layout_constraintEnd_toStartOf="@+id/btnDelete"
+        app:layout_constraintTop_toTopOf="@+id/imgThumbnail"
+        app:layout_constraintBottom_toBottomOf="@+id/imgThumbnail"
+        android:layout_marginEnd="8dp" />
+
+    <ImageButton
+        android:id="@+id/btnDelete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="Delete"
+        android:src="@android:drawable/ic_menu_delete"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/imgThumbnail"
+        app:layout_constraintBottom_toBottomOf="@+id/imgThumbnail" />
+</androidx.constraintlayout.widget.ConstraintLayout>

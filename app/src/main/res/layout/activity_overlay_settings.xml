@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingStart="24dp"
+    android:paddingEnd="24dp"
+    android:paddingTop="24dp"
+    android:paddingBottom="24dp">
+
+    <TextView
+        android:id="@+id/title"
+        android:text="Overlay Settings"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:textSize="28sp"
+        android:letterSpacing="0.05"
+        android:textColor="?attr/colorOnBackground"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="32dp" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/switch_penalties"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Show Penalties"
+        android:textSize="18sp"
+        app:layout_constraintTop_toBottomOf="@id/title"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="20dp" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/switch_time"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Show Time"
+        android:textSize="18sp"
+        app:layout_constraintTop_toBottomOf="@id/switch_penalties"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="20dp" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/switch_rank"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Show Rank"
+        android:textSize="18sp"
+        app:layout_constraintTop_toBottomOf="@id/switch_time"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="20dp" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/switch_gap_to_best"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Show Gap To Best"
+        android:textSize="18sp"
+        app:layout_constraintTop_toBottomOf="@id/switch_rank"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
