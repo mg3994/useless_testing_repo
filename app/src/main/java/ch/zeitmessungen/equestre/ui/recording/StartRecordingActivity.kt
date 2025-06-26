@@ -45,7 +45,12 @@ import androidx.media3.effect.StaticOverlaySettings
 import androidx.media3.effect.TextOverlay
 import androidx.media3.effect.TextureOverlay
 import ch.zeitmessungen.equestre.R
+import ch.zeitmessungen.equestre.data.models.InfoModel
 import com.google.common.collect.ImmutableList
+import io.socket.client.IO
+import io.socket.client.Socket
+import org.json.JSONObject
+import java.net.URISyntaxException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -54,6 +59,7 @@ import java.util.concurrent.Executors
 
 @UnstableApi
 class StartRecordingActivity : AppCompatActivity() {
+    private var socket: Socket? = null
     private var videoCapture: VideoCapture<Recorder>? = null
     private var recording: Recording? = null
     private lateinit var cameraExecutor: ExecutorService
@@ -62,6 +68,7 @@ class StartRecordingActivity : AppCompatActivity() {
     //
     private lateinit var eventId: String
     //
+    private val events = mutableListOf<InfoModel>()
 
     private val activityResultLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
@@ -106,8 +113,65 @@ class StartRecordingActivity : AppCompatActivity() {
         button.setOnClickListener {
             captureVideo()
         }
+        initSocket()
     }
+    private fun initSocket() {
+        val eventId = intent.getStringExtra("extra_event_id") ?: ""
 
+        try {
+            val options = IO.Options().apply {
+                transports = arrayOf("websocket")
+                forceNew = true
+                reconnection = true
+            }
+
+            socket = IO.socket("http://185.48.228.171:21741", options)
+
+            socket?.on(Socket.EVENT_CONNECT) {
+                Log.d("Socket", "Connected")
+                socket?.emit("subscribe", eventId)
+            }
+
+            listOf(
+                "info", "startlist", "competitors", "horses", "riders",
+                "judges", "teams", "ranking", "cc-ranking", "realtime",
+                "resume", "nofifyResume", "final", "ready", "live_info"
+            ).forEach { eventName ->
+                socket?.on(eventName) { args ->
+                    Log.d("Socket", "Received '$eventName': ${args.joinToString()}")
+                    if (eventName == "info" && args.isNotEmpty()) {
+                        val data = args[0]
+                        runOnUiThread {
+                            try {
+                                val jsonObj = when (data) {
+                                    is String -> JSONObject(data)
+                                    is JSONObject -> data
+                                    else -> null
+                                }
+
+                                jsonObj?.let {
+                                    events.clear()
+                                    events.add(InfoModel.fromJson(it))
+//                                    adapter.notifyDataSetChanged()
+                                }
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+                        }
+                    }
+                }
+            }
+
+            socket?.on(Socket.EVENT_CONNECT_ERROR) { args ->
+                Log.e("Socket", "Connect Error: ${args.joinToString()}")
+            }
+
+            socket?.connect()
+
+        } catch (e: URISyntaxException) {
+            e.printStackTrace()
+        }
+    }
     private fun captureVideo() {
         val videoCapture = this.videoCapture ?: return
         button.isEnabled = false
@@ -229,6 +293,8 @@ class StartRecordingActivity : AppCompatActivity() {
         if (::cameraExecutor.isInitialized) {
             cameraExecutor.shutdown()
         }
+        socket?.disconnect()
+        socket?.off()
     }
 
     companion object {
