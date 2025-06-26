@@ -56,7 +56,12 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.glide)
+    implementation(libs.socket.io.client)
 //
+//    implementation("io.socket:socket.io-client:2.0.0") {
+//        exclude("org.json",module="json")
+//
+//    }
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
