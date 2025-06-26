@@ -45,7 +45,11 @@ import androidx.media3.effect.StaticOverlaySettings
 import androidx.media3.effect.TextOverlay
 import androidx.media3.effect.TextureOverlay
 import ch.zeitmessungen.equestre.R
+import ch.zeitmessungen.equestre.data.OverlaySettingsPreferences
+import ch.zeitmessungen.equestre.data.models.HorseModel
 import ch.zeitmessungen.equestre.data.models.InfoModel
+import ch.zeitmessungen.equestre.data.models.RealtimeModel
+import ch.zeitmessungen.equestre.data.models.RiderModel
 import com.google.common.collect.ImmutableList
 import io.socket.client.IO
 import io.socket.client.Socket
@@ -68,7 +72,24 @@ class StartRecordingActivity : AppCompatActivity() {
     //
     private lateinit var eventId: String
     //
-    private val events = mutableListOf<InfoModel>()
+    // Models
+    private val eventsInfo = mutableListOf<InfoModel>() //Map
+    private val eventHorses = mutableListOf<HorseModel>() //List
+    private val eventRiders = mutableListOf<RiderModel>() // List
+    private var currentRealtimeData: RealtimeModel? = null
+
+    private var isPenaltiesVisible = false
+    private var isTimeVisible = false
+    private var isRankVisible = false
+    private var isGapToBestVisible = false
+    private var isLiveVisible = false
+    private var isBrandLogoVisible = false
+    private var isHorseNumberVisible = false
+    private var isHorseNameVisible = false
+    private var isHorseRiderNameVisible = false
+
+
+
 
     private val activityResultLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
@@ -91,7 +112,16 @@ class StartRecordingActivity : AppCompatActivity() {
 
         // You can now use `eventId` anywhere in the activity
         Log.d("StartRecording", "Received eventId: $eventId")
-
+        // Preferences initialization after context is ready
+        isPenaltiesVisible = OverlaySettingsPreferences.getShowPenalties(this)
+        isTimeVisible = OverlaySettingsPreferences.getShowTime(this)
+        isRankVisible = OverlaySettingsPreferences.getShowRank(this)
+        isGapToBestVisible = OverlaySettingsPreferences.getShowGapToBest(this)
+        isLiveVisible = OverlaySettingsPreferences.getShowIsLive(this)
+        isBrandLogoVisible = OverlaySettingsPreferences.getShowBrandLogo(this)
+        isHorseNumberVisible = OverlaySettingsPreferences.getShowHorseNumber(this)
+        isHorseNameVisible = OverlaySettingsPreferences.getShowHorseName(this)
+        isHorseRiderNameVisible = OverlaySettingsPreferences.getShowHorseRiderName(this)
         // Continue your Camera setup...
         //
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.start_recording)) { v, insets ->
@@ -150,12 +180,34 @@ class StartRecordingActivity : AppCompatActivity() {
                                 }
 
                                 jsonObj?.let {
-                                    events.clear()
-                                    events.add(InfoModel.fromJson(it))
+                                    eventsInfo.clear()
+                                    eventsInfo.add(InfoModel.fromJson(it))
 //                                    adapter.notifyDataSetChanged()
+                                    Log.d("InfoModel", "Parsed: $eventsInfo")
                                 }
                             } catch (e: Exception) {
                                 e.printStackTrace()
+                            }
+                        }
+                    }
+
+                    if (eventName == "realtime" && args.isNotEmpty()) {
+                        val data = args[0]
+                        runOnUiThread {
+                            try {
+                                val jsonObj = when (data) {
+                                    is String -> JSONObject(data)
+                                    is JSONObject -> data
+                                    else -> null
+                                }
+
+                                jsonObj?.let {
+                                    currentRealtimeData = RealtimeModel.fromJson(it)
+                                    Log.d("RealtimeData", "Parsed: $currentRealtimeData")
+//////////////
+                                }
+                            } catch (e: Exception) {
+                                Log.e("Socket", "Error parsing realtime data", e)
                             }
                         }
                     }

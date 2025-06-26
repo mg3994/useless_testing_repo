@@ -1,6 +1,6 @@
 package ch.zeitmessungen.equestre.data.models
 
-
+//May be Map
 import org.json.JSONObject
 import java.text.ParseException
 import java.text.SimpleDateFormat

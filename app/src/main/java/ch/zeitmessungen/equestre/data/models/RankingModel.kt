@@ -1,5 +1,5 @@
 package ch.zeitmessungen.equestre.data.models
-
+// it is a Map =>  {"ranking":[["<span data-key=\"RANK\"><\/span>","<span data-key=\"NUMBER\"><\/span>","<span data-key=\"HORSE\"><\/span>","<span data-key=\"RIDER\"><\/span>","<span data-key=\"NATION\"><\/span>","<span data-key=\"POINTS\"><\/span>","<span data-key=\"TIME\"><\/span>"],[1,1,"","","","0.00","603.93"],[1,7,"","","","0.00","90.24"],[1,9,"","","","0.00","86.57"],[1,11,"","","","0.00","82.09"],[5,4,"","","","4.00","110.22"],[5,6,"","","","4.00","82.46"],[7,5,"","","","8.00","81.75"],[8,10,"","","","16.00","125.73"],[9,3,"","","","<span class=\"point-label\" data-key=\"OFF_COURSE\">OFF_COURSE<\/span>",""],[9,8,"","","","<span class=\"point-label\" data-key=\"OFF_COURSE\">OFF_COURSE<\/span>",""]],"team_ranking":[],"gameInfo":{"allowed_time":0,"allowed_time_jumpoff":0,"registered_count":10,"ranking_count":10,"started_count":10,"cleared_count":4,"comingup_count":4,"table_type":0,"two_phase":0}}
 import org.json.JSONArray
 import org.json.JSONObject
 

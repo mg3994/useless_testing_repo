@@ -1,5 +1,6 @@
 package ch.zeitmessungen.equestre.data.models
 
+// it is a Map => {"num":2,"lane":1,"startTime":52840192,"score":{"lane1":{"point":0,"time":6471870},"lane2":{}}}
 
 
 import org.json.JSONObject

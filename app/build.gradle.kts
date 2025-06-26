@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "ch.zeitmessungen.equestre"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -57,11 +57,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.glide)
     implementation(libs.socket.io.client)
-//
-//    implementation("io.socket:socket.io-client:2.0.0") {
-//        exclude("org.json",module="json")
-//
-//    }
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

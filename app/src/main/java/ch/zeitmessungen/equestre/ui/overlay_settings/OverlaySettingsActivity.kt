@@ -16,6 +16,16 @@ class OverlaySettingsActivity : AppCompatActivity() {
     private lateinit var switchRank: SwitchCompat
     private lateinit var switchGapToBest: SwitchCompat
 
+    private lateinit var switchIsLive: SwitchCompat
+
+    private lateinit var switchBrandLogo: SwitchCompat
+
+    private lateinit var switchHorseNumber: SwitchCompat
+
+    private lateinit var switchHorseName: SwitchCompat
+
+    private lateinit var switchHorseRiderName: SwitchCompat
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -31,12 +41,23 @@ class OverlaySettingsActivity : AppCompatActivity() {
         switchTime = findViewById(R.id.switch_time)
         switchRank = findViewById(R.id.switch_rank)
         switchGapToBest = findViewById(R.id.switch_gap_to_best)
+//
+        switchIsLive  = findViewById(R.id.switch_is_live)
+        switchBrandLogo  = findViewById(R.id.switch_brand_logo)
+        switchHorseNumber  = findViewById(R.id.switch_horse_number)
+        switchHorseName  = findViewById(R.id.switch_horse_name)
+        switchHorseRiderName  = findViewById(R.id.switch_horse_rider_name)
 
         // Load saved prefs
         switchPenalties.isChecked = OverlaySettingsPreferences.getShowPenalties(this)
         switchTime.isChecked = OverlaySettingsPreferences.getShowTime(this)
         switchRank.isChecked = OverlaySettingsPreferences.getShowRank(this)
         switchGapToBest.isChecked = OverlaySettingsPreferences.getShowGapToBest(this)
+        switchIsLive.isChecked = OverlaySettingsPreferences.getShowIsLive(this)
+        switchBrandLogo.isChecked = OverlaySettingsPreferences.getShowBrandLogo(this)
+        switchHorseNumber.isChecked = OverlaySettingsPreferences.getShowHorseNumber(this)
+        switchHorseName.isChecked = OverlaySettingsPreferences.getShowHorseName(this)
+        switchHorseRiderName.isChecked = OverlaySettingsPreferences.getShowHorseRiderName(this)
 
         // Save on toggle change
         switchPenalties.setOnCheckedChangeListener { _, isChecked ->
@@ -51,5 +72,15 @@ class OverlaySettingsActivity : AppCompatActivity() {
         switchGapToBest.setOnCheckedChangeListener { _, isChecked ->
             OverlaySettingsPreferences.setShowGapToBest(this, isChecked)
         }
+        switchIsLive.setOnCheckedChangeListener { _, isChecked ->
+            OverlaySettingsPreferences.setShowIsLive(this, isChecked)}
+        switchBrandLogo.setOnCheckedChangeListener { _, isChecked ->
+                OverlaySettingsPreferences.setShowBrandLogo(this, isChecked)}
+        switchHorseNumber.setOnCheckedChangeListener { _, isChecked ->
+                    OverlaySettingsPreferences.setShowHorseNumber(this, isChecked)}
+        switchHorseName.setOnCheckedChangeListener { _, isChecked ->
+                        OverlaySettingsPreferences.setShowHorseName(this, isChecked)}
+        switchHorseRiderName.setOnCheckedChangeListener { _, isChecked ->
+                            OverlaySettingsPreferences.setShowHorseRiderName(this, isChecked)}
     }
 }

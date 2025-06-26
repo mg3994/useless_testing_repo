@@ -67,4 +67,52 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/switch_is_live"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Show Live on Top"
+        android:textSize="18sp"
+        app:layout_constraintTop_toBottomOf="@id/switch_gap_to_best"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/switch_brand_logo"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Show Agency Logo"
+        android:textSize="18sp"
+        app:layout_constraintTop_toBottomOf="@id/switch_is_live"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/switch_horse_number"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Show Horse Number"
+        android:textSize="18sp"
+        app:layout_constraintTop_toBottomOf="@id/switch_brand_logo"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/switch_horse_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Show Horse Name"
+        android:textSize="18sp"
+        app:layout_constraintTop_toBottomOf="@id/switch_horse_number"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/switch_horse_rider_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Show Rider Name"
+        android:textSize="18sp"
+        app:layout_constraintTop_toBottomOf="@id/switch_horse_name"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
