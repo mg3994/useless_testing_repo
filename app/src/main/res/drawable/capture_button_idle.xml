@@ -8,8 +8,8 @@
         </shape>
     </item>
 
-    <!-- Red inner circle (70dp, due to 10dp padding on each side) -->
-    <item android:left="10dp" android:top="10dp" android:right="10dp" android:bottom="10dp">
+    <!-- Red inner circle (now 72dp, with 9dp padding on each side) -->
+    <item android:left="9dp" android:top="9dp" android:right="9dp" android:bottom="9dp">
         <shape android:shape="oval">
             <solid android:color="#FF0000"/>
         </shape>

@@ -1321,7 +1321,9 @@ class StartRecordingActivity : AppCompatActivity() {
         cameraExecutor = Executors.newSingleThreadExecutor()
         viewFinder = findViewById(R.id.viewFinder)
         button = findViewById(R.id.video_capture_button)
-
+        // Set initial button state (idle)
+        button.setBackgroundResource(R.drawable.capture_button_idle)
+        button.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.ic_stop_white, 0, 0) // Set initial icon
         if (allPermissionsGranted()) {
             startCamera()
         } else {
@@ -1422,6 +1424,8 @@ class StartRecordingActivity : AppCompatActivity() {
             curRecording.stop()
             recording = null
             Toast.makeText(this, "Recording Stopped", Toast.LENGTH_SHORT).show()
+            button.setBackgroundResource(R.drawable.capture_button_idle)
+            button.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.ic_stop_white, 0, 0) // Set idle icon
             return
         }
 
@@ -1452,6 +1456,8 @@ class StartRecordingActivity : AppCompatActivity() {
                     is VideoRecordEvent.Start -> {
                         button.isEnabled = true
                         Toast.makeText(this, "Recording Started", Toast.LENGTH_SHORT).show()
+                        button.setBackgroundResource(R.drawable.capture_button_recording)
+                        button.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0) // Remove icon for recording state
                     }
                     is VideoRecordEvent.Finalize -> {
                         if (!recordEvent.hasError()) {
@@ -1465,6 +1471,9 @@ class StartRecordingActivity : AppCompatActivity() {
                             Toast.makeText(baseContext, "Video capture failed: ${recordEvent.error}", Toast.LENGTH_SHORT).show()
                         }
                         button.isEnabled = true
+                        // Set button back to idle state after finalization
+                        button.setBackgroundResource(R.drawable.capture_button_idle)
+                        button.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.ic_stop_white, 0, 0) // Set idle icon
                     }
                 }
             }
