@@ -4,6 +4,20 @@ plugins {
 }
 
 android {
+    signingConfigs {
+//        getByName("debug") {
+//            storeFile = file("C:\\Users\\DEEPAK SHARMA\\.android\\debug.keystore")
+//            storePassword = "android"
+//            keyAlias = "androiddebugkey"
+//            keyPassword = "android"
+//        }
+        create("release") {
+            storeFile = file("upload-keystore.jks")
+            storePassword = "android"
+            keyPassword = "android"
+            keyAlias = "upload"
+        }
+    }
     namespace = "ch.zeitmessungen.equestre"
     compileSdk = 36
     ndkVersion = "29.0.13599879"
@@ -21,6 +35,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

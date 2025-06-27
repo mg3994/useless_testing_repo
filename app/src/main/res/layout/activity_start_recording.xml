@@ -17,6 +17,7 @@
         app:layout_constraintBottom_toBottomOf="parent" />
 
     <!-- Round Video Capture Button -->
+<!--    android:drawableTop="@drawable/ic_stop_white"-->
     <Button
         android:id="@+id/video_capture_button"
         android:layout_width="90dp"
@@ -27,7 +28,7 @@
         android:contentDescription="@string/start_recording"
         app:backgroundTint="@null"
         android:text=""
-        android:drawableTop="@drawable/ic_stop_white"
+
         android:paddingTop="35dp"
         android:paddingBottom="35dp"
         android:paddingStart="35dp"

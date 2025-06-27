@@ -87,8 +87,36 @@ class RecordingsAdapter(
                 }
                 context.startActivity(intent)
             }
+            holder.imgThumbnail.setOnClickListener {
+                val context = holder.itemView.context
+                val file = File(recording.path)
+                val uri: Uri = FileProvider.getUriForFile(
+                    context,
+                    authority,
+                    file
+                )
+                val intent = Intent(Intent.ACTION_VIEW).apply {
+                    setDataAndType(uri, "video/*")
+                    flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                }
+                context.startActivity(intent)
+            }
+            holder.tvName.setOnClickListener {
+                val context = holder.itemView.context
+                val file = File(recording.path)
+                val uri: Uri = FileProvider.getUriForFile(
+                    context,
+                    authority,
+                    file
+                )
+                val intent = Intent(Intent.ACTION_VIEW).apply {
+                    setDataAndType(uri, "video/*")
+                    flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                }
+                context.startActivity(intent)
+            }
 
-            holder.btnDelete.setOnClickListener {
+            holder.btnDelete.setOnClickListener { //TODO: File is deleting perfectly for respective video but the position that it is updating , say removing in recycler view that postion is sometimes wrong
                 val context = holder.itemView.context
                 val file = File(recording.path)
                 if (file.exists()) {

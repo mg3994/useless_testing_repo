@@ -1248,6 +1248,9 @@ import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit // For converting milliseconds to formatted time
+import androidx.core.graphics.toColorInt
+import ch.zeitmessungen.equestre.data.models.FinalModel
+import ch.zeitmessungen.equestre.ui.overlay_settings.ParallelogramSpan
 
 @UnstableApi
 class StartRecordingActivity : AppCompatActivity() {
@@ -1266,14 +1269,14 @@ class StartRecordingActivity : AppCompatActivity() {
     @Volatile private var eventHorses = mutableListOf<HorseModel>()
     @Volatile private var eventRiders = mutableListOf<RiderModel>()
     @Volatile private var currentRealtimeData: RealtimeModel? = null
-
+    @Volatile private var finalEventData: FinalModel? = null // Changed to FinalModel
     // Overlay visibility preferences
     private var isPenaltiesVisible = false
     private var isTimeVisible = false
     private var isRankVisible = false
     private var isGapToBestVisible = false
     private var isLiveVisible = false
-    private var isBrandLogoVisible = false // Assuming brand logo is an image, not text
+    private var isBrandLogoVisible = false // Assuming brand logo is an image, not text, but not here , (Text)
     private var isHorseNumberVisible = false
     private var isHorseNameVisible = false
     private var isHorseRiderNameVisible = false
@@ -1323,7 +1326,7 @@ class StartRecordingActivity : AppCompatActivity() {
         button = findViewById(R.id.video_capture_button)
         // Set initial button state (idle)
         button.setBackgroundResource(R.drawable.capture_button_idle)
-        button.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.ic_stop_white, 0, 0) // Set initial icon
+       // button.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.ic_stop_white, 0, 0) // Set initial icon
         if (allPermissionsGranted()) {
             startCamera()
         } else {
@@ -1337,7 +1340,7 @@ class StartRecordingActivity : AppCompatActivity() {
     }
 
     private fun initSocket() {
-        val eventId = intent.getStringExtra("extra_event_id") ?: ""
+        val eventId = intent.getStringExtra("extra_event_id") ?: "" //Avoid DRY as this string is already defined */ keep that */
 
         try {
             val options = IO.Options().apply {
@@ -1396,6 +1399,13 @@ class StartRecordingActivity : AppCompatActivity() {
                                         Log.d("RealtimeData", "Parsed: $currentRealtimeData")
                                     }
                                 }
+                                "final" -> { // Handle the "final" event
+                                    val jsonObj = data as? JSONObject
+                                    jsonObj?.let {
+                                        finalEventData = FinalModel.fromJson(it) // Using FinalModel
+                                        Log.d("FinalEventData", "Parsed: $finalEventData")
+                                    }
+                                }
                             }
                         } catch (e: Exception) {
                             Log.e("Socket", "Error parsing '$eventName' data", e)
@@ -1425,7 +1435,7 @@ class StartRecordingActivity : AppCompatActivity() {
             recording = null
             Toast.makeText(this, "Recording Stopped", Toast.LENGTH_SHORT).show()
             button.setBackgroundResource(R.drawable.capture_button_idle)
-            button.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.ic_stop_white, 0, 0) // Set idle icon
+//            button.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.ic_stop_white, 0, 0) // Set idle icon
             return
         }
 
@@ -1435,10 +1445,10 @@ class StartRecordingActivity : AppCompatActivity() {
             put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 put(MediaStore.Video.Media.RELATIVE_PATH, "DCIM/Equestre")
-            }
+            } //do cover else case as if < then show with different approach like Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), "Equestre")
         }
 
-        val mediaStoreOutputOptions = MediaStoreOutputOptions
+        val mediaStoreOutputOptions = MediaStoreOutputOptions //add Docs for this
             .Builder(contentResolver, MediaStore.Video.Media.EXTERNAL_CONTENT_URI)
             .setContentValues(contentValues)
             .build()
@@ -1457,7 +1467,7 @@ class StartRecordingActivity : AppCompatActivity() {
                         button.isEnabled = true
                         Toast.makeText(this, "Recording Started", Toast.LENGTH_SHORT).show()
                         button.setBackgroundResource(R.drawable.capture_button_recording)
-                        button.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0) // Remove icon for recording state
+//                        button.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0) // Remove icon for recording state
                     }
                     is VideoRecordEvent.Finalize -> {
                         if (!recordEvent.hasError()) {
@@ -1473,7 +1483,7 @@ class StartRecordingActivity : AppCompatActivity() {
                         button.isEnabled = true
                         // Set button back to idle state after finalization
                         button.setBackgroundResource(R.drawable.capture_button_idle)
-                        button.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.ic_stop_white, 0, 0) // Set idle icon
+//
                     }
                 }
             }
@@ -1613,18 +1623,28 @@ class StartRecordingActivity : AppCompatActivity() {
                     }
                     val text = textProvider()
                     val spannable = SpannableString(text)
+//                    spannable.setSpan(
+//                        BackgroundColorSpan(bgColor),
+//                        0, text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE // make background parellogram somewhat bigger
+//                    )
+//                    spannable.setSpan(
+//                        ForegroundColorSpan(fgColor),
+//                        0, text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+//                    )
                     spannable.setSpan(
-                        BackgroundColorSpan(bgColor),
-                        0, text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                        ParallelogramSpan(
+                            backgroundColor = bgColor,
+                            textColor = fgColor,
+
+                            skewOffset = 25f
+                        ),
+                        0, text.length,
+                        SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE
                     )
-                    spannable.setSpan(
-                        ForegroundColorSpan(fgColor),
-                        0, text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-                    )
-                    spannable.setSpan(
-                        AbsoluteSizeSpan(textSizePx, false),
-                        0, text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-                    )
+//                    spannable.setSpan(
+//                        AbsoluteSizeSpan(textSizePx, false),
+//                        0, text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+//                    ) //Do add More for a Bordered container so that a parallogram may be there where text is on that parellogram card, also make that parellogram border somehow rounded a little bit
                     return spannable
                 }
 
@@ -1672,7 +1692,7 @@ class StartRecordingActivity : AppCompatActivity() {
 //                    .build()
 //            }
 //        }
-//        overlays.add(timestampOverlay)
+//        overlays.add(timestampOverlay) // don't uncomment or delete it is for future , as we will provide support for recording start/camera app start timestamp
 
 
         // 2. Live Overlay (from InfoModel and isLiveVisible)
@@ -1721,7 +1741,7 @@ class StartRecordingActivity : AppCompatActivity() {
 
         // 3. Horse Number Overlay (from currentRealtimeData.num)
         val horseNumberOverlay = buildColoredTextOverlay(
-            textProvider = { currentRealtimeData?.num?.toString() ?: "N/A" },
+            textProvider = { currentRealtimeData?.num?.toString() ?: "#" },  // We Made Mistake for this and Shown Wrong Content here
             bgColor = 0xFF1E88E5.toInt(),
             xAnchor = -0.2f,
             yAnchor = -0.5f,
@@ -1735,7 +1755,7 @@ class StartRecordingActivity : AppCompatActivity() {
 
         // 4. Rider Name Overlay (from currentRealtimeData.num matching RiderModel.idx)
         val riderNameOverlay = buildColoredTextOverlay(
-            textProvider = {
+            textProvider = { // We Made Mistake for this and Shown Wrong Content here
                 val competitorIdx = currentRealtimeData?.num
                 val rider = eventRiders.find { it.idx == competitorIdx }
                 if (rider != null) {
@@ -1764,10 +1784,10 @@ class StartRecordingActivity : AppCompatActivity() {
                 val horse = eventHorses.find { it.idx == competitorIdx }
                 horse?.name ?: "Horse Name"
             },
-            bgColor = Color.parseColor("#4CAF50"), // Green background
+            bgColor = "#4CAF50".toColorInt(), // Green background
 
 
-            fgColor = 0xFF808080.toInt(), xAnchor = -0.95f, yAnchor = 0.75f,textSizePx = 80,backgroundAnchorX = -0.87f,
+             xAnchor = -0.95f, yAnchor = 0.75f,textSizePx = 80,backgroundAnchorX = -0.87f,
             backgroundAnchorY = -0.55f,
 
             yOffset = 0.02f,
@@ -1778,8 +1798,19 @@ class StartRecordingActivity : AppCompatActivity() {
 
         // 6. Penalties Overlay (from currentRealtimeData.score.lane1.point)
         val penaltiesOverlay = buildColoredTextOverlay(
-            textProvider = { "Penalties: ${currentRealtimeData?.score?.lane1?.point?.toString() ?: "N/A"}" },
-            bgColor = Color.parseColor("#FF9800"), // Orange background
+            textProvider = {
+                currentRealtimeData?.score?.lane1?.point?.let { rawPoints ->
+                val calculatedPoints = rawPoints / 1000.0
+                val formattedNumericString = String.format(Locale.US, "%.2f", calculatedPoints)
+
+                if (formattedNumericString == "-0.01") {
+                    "Elimin."
+                } else {
+                    "$formattedNumericString" // Use the already formatted string
+                }
+            } ?: "Penalties"
+            },
+            bgColor = "#FF9800".toColorInt(), // If "Elimin." then it Should be red
             fgColor = Color.WHITE,
            xAnchor = 0.95f, yAnchor = 0.70f,textSizePx = 70,backgroundAnchorX = 0.58f,
             backgroundAnchorY = -0.42f,
@@ -1789,8 +1820,8 @@ class StartRecordingActivity : AppCompatActivity() {
 
         // 7. Time Overlay (from currentRealtimeData.score.lane1.time)
         val timeOverlay = buildColoredTextOverlay(
-            textProvider = { "Time: ${formatMilliseconds(currentRealtimeData?.score?.lane1?.time)}" },
-            bgColor = Color.parseColor("#2196F3"), // Blue background
+            textProvider = { "${formatMilliseconds(currentRealtimeData?.score?.lane1?.time)}" },// TODO: refind with .find and so on
+            bgColor = "#2196F3".toColorInt(), // Blue background
             fgColor = Color.WHITE,
             xAnchor = 0.95f, yAnchor = 0.80f,textSizePx = 70,backgroundAnchorX = 0.77f,
             backgroundAnchorY = -0.52f,
@@ -1800,24 +1831,24 @@ class StartRecordingActivity : AppCompatActivity() {
 
         // 8. Rank Overlay (Not available in new RealtimeModel)
         val rankOverlay = buildColoredTextOverlay(
-            textProvider = { "Rank: N/A" }, // Field not present in new RealtimeModel
-            bgColor = Color.parseColor("#9C27B0"), // Purple background
+            textProvider = { finalEventData?.num?.let { "$it" } ?: "Rank" },  // Updated to use finalEventData
+            bgColor = "#9C27B0".toColorInt(), // Purple background
             fgColor = Color.WHITE,
             xAnchor = 0.95f, yAnchor = 0.90f,textSizePx = 70,backgroundAnchorX = 0.8f,
             backgroundAnchorY = -0.59f,
 
-            isVisibleProvider = { isRankVisible }
+            isVisibleProvider = { isRankVisible && finalEventData != null  }  //TODO: when there is data in RankingModel for that respective
         )
         overlays.add(rankOverlay)
 
         // 9. Gap to Best Overlay (Not available in new RealtimeModel)
         val gapToBestOverlay = buildColoredTextOverlay(
-            textProvider = { "Gap: N/A" }, // Field not present in new RealtimeModel
-           bgColor =  0xFF2E7D32.toInt(), xAnchor = 0.95f, yAnchor = 0.60f,textSizePx = 70,backgroundAnchorX = 0.77f,
+            textProvider = { "Gap: N/A" }, // Field not present in new RealtimeModel //TODO: Find it with  use Of RankingModel For this , also the result is declared after the race/Match ends and then only we wish to show it on that event
+            bgColor =  0xFF2E7D32.toInt(), xAnchor = 0.95f, yAnchor = 0.60f,textSizePx = 70,backgroundAnchorX = 0.77f,
             backgroundAnchorY = -0.45f,
             fgColor = Color.WHITE,
 
-            isVisibleProvider = { isGapToBestVisible }
+            isVisibleProvider = { isGapToBestVisible } //TODO: when there is data in RankingModel for that respective
         )
         overlays.add(gapToBestOverlay)
 
