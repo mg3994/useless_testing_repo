@@ -1406,6 +1406,14 @@ class StartRecordingActivity : AppCompatActivity() {
                                         Log.d("FinalEventData", "Parsed: $finalEventData")
                                     }
                                 }
+//                                "cc-ranking", "ranking" -> {
+//                                    val jsonArray = data as? JSONArray
+//                                    jsonArray?.let {
+//                                        eventRankings.clear()
+//                                        eventRankings.addAll(RankingEntry.fromJsonArray(it))
+//                                        Log.d("RankingEntry", "Parsed: $eventRankings")
+//                                    }
+//                                }
                             }
                         } catch (e: Exception) {
                             Log.e("Socket", "Error parsing '$eventName' data", e)
