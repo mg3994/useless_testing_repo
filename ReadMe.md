@@ -1,14 +1,14 @@
-# Equestre Native Camera & Dart Business Logic Architecture
+# Equestre Native Camera & DartNative Plugin Architecture
 
 Special thanks to @Coding With Nobody (Youtube)
 
 ## Architecture & Integration
-This project is designed to bridge **Native Android UI/Rendering** with **Dart/Flutter Business Logic**.
+This project is designed as an advanced **DartNative Camera Plugin** (`dartnative_camera`), mimicking the official [DartNative Plugin](https://github.com/DartNative/dartnative/tree/main/plugins/dartnative_camera) architecture:
 
-- **Native UI & Rendering**: Managed in Android via CameraX, Media3 Effect (`Media3Effect`, `OverlayEffect`), custom `ParallelogramSpan` drawn text overlays, and native video capture capabilities.
-- **Dart / Business Logic Layer**: Handles socket connections (`Socket.IO`), real-time data ingestion (`InfoModel`, `RealtimeModel`, `RiderModel`, `HorseModel`), and rule evaluation.
+- **Native UI & Hardware Rendering**: Managed on Android via CameraX, Media3 Effect (`Media3Effect`, `OverlayEffect`), custom `ParallelogramSpan` GPU dynamic overlays, and native video recording.
+- **Dart Business Logic Layer**: Direct JNI invocation via DartNative runtime (`dn plugin build`), handling socket connections (`Socket.IO`), real-time data ingestion (`InfoModel`, `RealtimeModel`, `RiderModel`, `HorseModel`), and state management in Dart.
 
-Detailed architecture design, MethodChannel APIs, and EventChannel specifications are available in [DART_NATIVE_PLUGIN_DESIGN.md](DART_NATIVE_PLUGIN_DESIGN.md).
+Detailed architecture specifications, JNI native signatures, and `.aar` plugin distribution configuration are documented in [DART_NATIVE_PLUGIN_DESIGN.md](DART_NATIVE_PLUGIN_DESIGN.md).
 
 ## Dependencies
 
