@@ -5,26 +5,70 @@ import ch.zeitmessungen.equestre.ui.recording.OverlayDataProvider
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * DartNativeCameraBridge acts as the JNI and native interface bridge for DartNative plugins.
- * It receives state updates directly from Dart via DartNative JNI calls or MethodChannels,
- * storing real-time values and feeding them to the native CameraX / Media3 renderer in [StartRecordingActivity].
+ * DartNativeCameraBridge acts as the JNI and JNIGen FFI bridge interface for DartNative plugins.
+ * It receives real-time state updates directly from Dart via JNIGen FFI generated bindings,
+ * storing state in thread-safe containers for native CameraX / Media3 GPU texture overlays in [StartRecordingActivity].
  */
 @Keep
 class DartNativeCameraBridge private constructor() : OverlayDataProvider {
 
     private val dataMap = ConcurrentHashMap<String, String>()
-    private var isLiveState = false
+    @Volatile private var isLiveState = false
+    @Volatile private var isRecordingState = false
 
+    @Keep
     fun updateData(newMap: Map<String, Any?>) {
         newMap.forEach { (key, value) ->
             if (value != null) {
                 if (key == "isLive" && value is Boolean) {
                     isLiveState = value
+                } else if (key == "isRecording" && value is Boolean) {
+                    isRecordingState = value
                 } else {
                     dataMap[key] = value.toString()
                 }
             }
         }
+    }
+
+    @Keep
+    fun setRiderName(name: String) {
+        dataMap["riderName"] = name
+    }
+
+    @Keep
+    fun setHorseName(name: String) {
+        dataMap["horseName"] = name
+    }
+
+    @Keep
+    fun setHorseNumber(num: String) {
+        dataMap["horseNumber"] = num
+    }
+
+    @Keep
+    fun setPenalties(penalties: String) {
+        dataMap["penalties"] = penalties
+    }
+
+    @Keep
+    fun setTimeFormatted(time: String) {
+        dataMap["time"] = time
+    }
+
+    @Keep
+    fun setRank(rank: String) {
+        dataMap["rank"] = rank
+    }
+
+    @Keep
+    fun setGap(gap: String) {
+        dataMap["gap"] = gap
+    }
+
+    @Keep
+    fun setLive(isLive: Boolean) {
+        isLiveState = isLive
     }
 
     override fun getRiderName(): String {
@@ -61,11 +105,11 @@ class DartNativeCameraBridge private constructor() : OverlayDataProvider {
 
     companion object {
         @JvmStatic
+        @get:Keep
         val instance: DartNativeCameraBridge by lazy { DartNativeCameraBridge() }
 
         /**
-         * JNI static direct invocation entrypoint called by DartNative C/JNI bridge
-         * to update native overlay state directly from Dart business logic.
+         * JNIGen / DartNative static direct FFI entrypoint callable from Dart logic.
          */
         @JvmStatic
         @Keep
