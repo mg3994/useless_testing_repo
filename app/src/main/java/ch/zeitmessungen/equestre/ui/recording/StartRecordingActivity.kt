@@ -1252,8 +1252,23 @@ import androidx.core.graphics.toColorInt
 import ch.zeitmessungen.equestre.data.models.FinalModel
 import ch.zeitmessungen.equestre.ui.overlay_settings.ParallelogramSpan
 
+/**
+ * Interface allowing external business logic (e.g., Dart / Flutter channels or local managers)
+ * to provide real-time overlay data to native Media3 texture overlays.
+ */
+interface OverlayDataProvider {
+    fun getRiderName(): String
+    fun getHorseName(): String
+    fun getHorseNumber(): String
+    fun getPenalties(): String
+    fun getTimeFormatted(): String
+    fun getRank(): String
+    fun getGap(): String
+    fun isLive(): Boolean
+}
+
 @UnstableApi
-class StartRecordingActivity : AppCompatActivity() {
+class StartRecordingActivity : AppCompatActivity(), OverlayDataProvider {
     private var socket: Socket? = null
     private var videoCapture: VideoCapture<Recorder>? = null
     private var recording: Recording? = null
@@ -1270,6 +1285,67 @@ class StartRecordingActivity : AppCompatActivity() {
     @Volatile private var eventRiders = mutableListOf<RiderModel>()
     @Volatile private var currentRealtimeData: RealtimeModel? = null
     @Volatile private var finalEventData: FinalModel? = null // Changed to FinalModel
+
+    // External / Dart-provided data fallback overrides
+    @Volatile var externalOverlayDataProvider: OverlayDataProvider? = null
+
+    override fun getRiderName(): String {
+        externalOverlayDataProvider?.let { return it.getRiderName() }
+        val competitorIdx = currentRealtimeData?.num
+        val rider = eventRiders.find { it.idx == competitorIdx }
+        return if (rider != null) {
+            "${rider.firstName ?: ""} ${rider.lastName ?: ""}".trim()
+        } else {
+            "Rider Name"
+        }
+    }
+
+    override fun getHorseName(): String {
+        externalOverlayDataProvider?.let { return it.getHorseName() }
+        val competitorIdx = currentRealtimeData?.num
+        val horse = eventHorses.find { it.idx == competitorIdx }
+        return horse?.name ?: "Horse Name"
+    }
+
+    override fun getHorseNumber(): String {
+        externalOverlayDataProvider?.let { return it.getHorseNumber() }
+        return currentRealtimeData?.num?.toString() ?: "#"
+    }
+
+    override fun getPenalties(): String {
+        externalOverlayDataProvider?.let { return it.getPenalties() }
+        return currentRealtimeData?.score?.lane1?.point?.let { rawPoints ->
+            val calculatedPoints = rawPoints / 1000.0
+            val formattedNumericString = String.format(Locale.US, "%.2f", calculatedPoints)
+            if (formattedNumericString == "-0.01") "Elimin." else formattedNumericString
+        } ?: "Penalties"
+    }
+
+    override fun getTimeFormatted(): String {
+        externalOverlayDataProvider?.let { return it.getTimeFormatted() }
+        val ms = currentRealtimeData?.score?.lane1?.time
+        if (ms == null) return "N/A"
+        val hours = TimeUnit.MILLISECONDS.toHours(ms)
+        val minutes = TimeUnit.MILLISECONDS.toMinutes(ms) % 60
+        val seconds = TimeUnit.MILLISECONDS.toSeconds(ms) % 60
+        val millis = ms % 1000
+        return String.format(Locale.US, "%02d:%02d:%02d.%03d", hours, minutes, seconds, millis)
+    }
+
+    override fun getRank(): String {
+        externalOverlayDataProvider?.let { return it.getRank() }
+        return finalEventData?.num?.let { "$it" } ?: "Rank"
+    }
+
+    override fun getGap(): String {
+        externalOverlayDataProvider?.let { return it.getGap() }
+        return "Gap: N/A"
+    }
+
+    override fun isLive(): Boolean {
+        externalOverlayDataProvider?.let { return it.isLive() }
+        return eventsInfo.firstOrNull()?.live ?: false
+    }
     // Overlay visibility preferences
     private var isPenaltiesVisible = false
     private var isTimeVisible = false
@@ -1297,6 +1373,9 @@ class StartRecordingActivity : AppCompatActivity() {
         setContentView(R.layout.activity_start_recording)
         // Keep the screen on for this activity
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
+        // Attach DartNativeCameraBridge as the default overlay data provider
+        externalOverlayDataProvider = ch.zeitmessungen.equestre.plugin.DartNativeCameraBridge.instance
 
         // Get the eventId from intent
         eventId = intent.getStringExtra(EXTRA_EVENT_ID)
@@ -1708,7 +1787,7 @@ class StartRecordingActivity : AppCompatActivity() {
             private val textSizePx = 60
 
             override fun getText(presentationTimeUs: Long): SpannableString {
-                val isLiveFromInfo = eventsInfo.firstOrNull()?.live ?: false
+                val isLiveFromInfo = isLive()
                 if (!isLiveVisible || !isLiveFromInfo) {
                     return SpannableString(" ") // Return a single space if not visible
                 }
@@ -1749,7 +1828,7 @@ class StartRecordingActivity : AppCompatActivity() {
 
         // 3. Horse Number Overlay (from currentRealtimeData.num)
         val horseNumberOverlay = buildColoredTextOverlay(
-            textProvider = { currentRealtimeData?.num?.toString() ?: "#" },  // We Made Mistake for this and Shown Wrong Content here
+            textProvider = { getHorseNumber() },
             bgColor = 0xFF1E88E5.toInt(),
             xAnchor = -0.2f,
             yAnchor = -0.5f,
@@ -1763,15 +1842,7 @@ class StartRecordingActivity : AppCompatActivity() {
 
         // 4. Rider Name Overlay (from currentRealtimeData.num matching RiderModel.idx)
         val riderNameOverlay = buildColoredTextOverlay(
-            textProvider = { // We Made Mistake for this and Shown Wrong Content here
-                val competitorIdx = currentRealtimeData?.num
-                val rider = eventRiders.find { it.idx == competitorIdx }
-                if (rider != null) {
-                    "${rider.firstName ?: ""} ${rider.lastName ?: ""}".trim()
-                } else {
-                    "Rider Name"
-                }
-            },
+            textProvider = { getRiderName() },
             bgColor = 0xFF2E7D32.toInt(),
             xAnchor = -0.95f, yAnchor = 0.75f,textSizePx = 80,backgroundAnchorX = -0.77f,
             backgroundAnchorY = -0.45f,
@@ -1787,11 +1858,7 @@ class StartRecordingActivity : AppCompatActivity() {
 
         // 5. Horse Name Overlay (from currentRealtimeData.num matching HorseModel.idx)
         val horseNameOverlay = buildColoredTextOverlay(
-            textProvider = {
-                val competitorIdx = currentRealtimeData?.num
-                val horse = eventHorses.find { it.idx == competitorIdx }
-                horse?.name ?: "Horse Name"
-            },
+            textProvider = { getHorseName() },
             bgColor = "#4CAF50".toColorInt(), // Green background
 
 
@@ -1806,18 +1873,7 @@ class StartRecordingActivity : AppCompatActivity() {
 
         // 6. Penalties Overlay (from currentRealtimeData.score.lane1.point)
         val penaltiesOverlay = buildColoredTextOverlay(
-            textProvider = {
-                currentRealtimeData?.score?.lane1?.point?.let { rawPoints ->
-                val calculatedPoints = rawPoints / 1000.0
-                val formattedNumericString = String.format(Locale.US, "%.2f", calculatedPoints)
-
-                if (formattedNumericString == "-0.01") {
-                    "Elimin."
-                } else {
-                    "$formattedNumericString" // Use the already formatted string
-                }
-            } ?: "Penalties"
-            },
+            textProvider = { getPenalties() },
             bgColor = "#FF9800".toColorInt(), // If "Elimin." then it Should be red
             fgColor = Color.WHITE,
            xAnchor = 0.95f, yAnchor = 0.70f,textSizePx = 70,backgroundAnchorX = 0.58f,
@@ -1828,7 +1884,7 @@ class StartRecordingActivity : AppCompatActivity() {
 
         // 7. Time Overlay (from currentRealtimeData.score.lane1.time)
         val timeOverlay = buildColoredTextOverlay(
-            textProvider = { "${formatMilliseconds(currentRealtimeData?.score?.lane1?.time)}" },// TODO: refind with .find and so on
+            textProvider = { getTimeFormatted() },
             bgColor = "#2196F3".toColorInt(), // Blue background
             fgColor = Color.WHITE,
             xAnchor = 0.95f, yAnchor = 0.80f,textSizePx = 70,backgroundAnchorX = 0.77f,
@@ -1839,24 +1895,24 @@ class StartRecordingActivity : AppCompatActivity() {
 
         // 8. Rank Overlay (Not available in new RealtimeModel)
         val rankOverlay = buildColoredTextOverlay(
-            textProvider = { finalEventData?.num?.let { "$it" } ?: "Rank" },  // Updated to use finalEventData
+            textProvider = { getRank() },
             bgColor = "#9C27B0".toColorInt(), // Purple background
             fgColor = Color.WHITE,
             xAnchor = 0.95f, yAnchor = 0.90f,textSizePx = 70,backgroundAnchorX = 0.8f,
             backgroundAnchorY = -0.59f,
 
-            isVisibleProvider = { isRankVisible && finalEventData != null  }  //TODO: when there is data in RankingModel for that respective
+            isVisibleProvider = { isRankVisible }
         )
         overlays.add(rankOverlay)
 
         // 9. Gap to Best Overlay (Not available in new RealtimeModel)
         val gapToBestOverlay = buildColoredTextOverlay(
-            textProvider = { "Gap: N/A" }, // Field not present in new RealtimeModel //TODO: Find it with  use Of RankingModel For this , also the result is declared after the race/Match ends and then only we wish to show it on that event
+            textProvider = { getGap() },
             bgColor =  0xFF2E7D32.toInt(), xAnchor = 0.95f, yAnchor = 0.60f,textSizePx = 70,backgroundAnchorX = 0.77f,
             backgroundAnchorY = -0.45f,
             fgColor = Color.WHITE,
 
-            isVisibleProvider = { isGapToBestVisible } //TODO: when there is data in RankingModel for that respective
+            isVisibleProvider = { isGapToBestVisible }
         )
         overlays.add(gapToBestOverlay)
 
